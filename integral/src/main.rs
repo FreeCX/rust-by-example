@@ -1,6 +1,7 @@
 extern crate rand;
-
+use std::io;
 use std::f32;
+use std::io::prelude::*;
 use rand::thread_rng;
 use rand::distributions::{IndependentSample, Range};
 
@@ -92,7 +93,23 @@ fn print_tuple( text: &str, tuple: (f32, f32) ) {
 }
 
 fn main() {
-    let ( a, b, n ) = ( 0.0, 1.0, 1000 );
+    let ( a, b ) = ( 0.0, 1.0 );
+    let mut buffer = String::new();
+    print!( "Enter iterations: " );
+    io::stdout().flush()
+        .ok()
+        .expect( "Can't flush!" );
+    io::stdin().read_line( &mut buffer )
+        .ok()
+        .expect( "Can't read line!" );
+    let n = match buffer.trim().parse() {
+        Ok( value )  => value,
+        Err( error ) => {
+            println!( "[error] {}; using default value.", error );
+            1000
+        }
+    };
+    println!( "Iteration count = {}", n );
     let pi = f32::consts::PI;
     let peps = |x: f32| ( x, ( x - pi ).abs() );
     let tr1 = 4.0 * trapezoids_v1( a, b, n );
