@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate time;
 use std::io;
 use std::f64;
 use std::io::prelude::*;
@@ -112,6 +113,7 @@ fn main() {
     println!( "Iteration count = {}", n );
     let pi = f64::consts::PI;
     let peps = |x: f64| ( x, ( x - pi ).abs() );
+    let start_time = time::get_time();
     let tr1 = 4.0 * trapezoids_v1( a, b, n );
     let tr2 = 4.0 * trapezoids_v2( a, b, n );
     let mc = 4.0 * monte_carlo( a, b, n );
@@ -120,6 +122,7 @@ fn main() {
     let sm = 4.0 * simpson( a, b );
     let sk = 4.0 * simpson_kosates( a, b, n );
     let gm = 4.0 * gauss( a, b );
+    let end_time = time::get_time();
     println!( "[     pi constant] pi = {:.50}", pi );
     print_tuple( "[   trapezoids v1]", peps( tr1 ) );
     print_tuple( "[   trapezoids v2]", peps( tr2 ) );
@@ -130,4 +133,5 @@ fn main() {
     print_tuple( "[         simpson]", peps( sm ) );
     print_tuple( "[ simpson-kosates]", peps( sk ) );
     print_tuple( "[           gauss]", peps( gm ) );
+    println!( "> {:?}", end_time - start_time );
 }
