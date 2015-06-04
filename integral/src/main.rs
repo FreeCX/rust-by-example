@@ -6,11 +6,8 @@ use std::io::prelude::*;
 use rand::thread_rng;
 use rand::distributions::{IndependentSample, Range};
 
-fn f( x: f64 ) -> f64 {
-    1.0 / ( x * x + 1.0 )
-}
-
-fn trapezoids_v1( a: f64, b: f64, n: i64 ) -> f64 {
+fn trapezoids_v1<F>( data: ( f64, f64, i64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    let ( a, b, n ) = data;
     let mut sum: f64 = 0.0;
     let h = ( b - a ) / n as f64;
     let xk = |k: i64| a + k as f64 * h;
@@ -21,7 +18,8 @@ fn trapezoids_v1( a: f64, b: f64, n: i64 ) -> f64 {
     sum
 }
 
-fn trapezoids_v2( a: f64, b: f64, n: i64 ) -> f64 {
+fn trapezoids_v2<F>( data: ( f64, f64, i64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    let ( a, b, n ) = data;
     let mut sum: f64 = 0.0;
     let h = ( b - a ) / n as f64;
     let xk = |k: i64| a + k as f64 * h;
@@ -31,7 +29,8 @@ fn trapezoids_v2( a: f64, b: f64, n: i64 ) -> f64 {
     h * ( 0.5 * ( f( a ) + f( b ) ) + sum )
 }
 
-fn monte_carlo( a: f64, b: f64, n: i64 ) -> f64 {
+fn monte_carlo<F>( data: ( f64, f64, i64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    let ( a, b, n ) = data;
     let between = Range::new( a, b );
     let mut rng = rand::thread_rng();
     let mut sum = 0.0;
@@ -42,7 +41,7 @@ fn monte_carlo( a: f64, b: f64, n: i64 ) -> f64 {
     ( b - a ) * sum / n as f64 
 }
 
-fn rectangle( a: f64, b: f64, n: i64 ) -> ( f64, f64, f64 ) {
+fn rectangle<F>( data: ( f64, f64, i64 ), f: F ) -> ( f64, f64, f64 ) where F: Fn( f64 ) -> f64 {
     let ( mut s_left, mut s_middle, mut s_right ) = ( 0.0, 0.0, 0.0 );
     let rectangle_left = |x0: f64, x1: f64| {
         f( x0 ) * ( x1 - x0 )
@@ -53,6 +52,7 @@ fn rectangle( a: f64, b: f64, n: i64 ) -> ( f64, f64, f64 ) {
     let rectangle_right = |x0: f64, x1: f64| {
         f( x0 ) * ( x0 - x1 )
     };
+    let ( a, b, n ) = data;
     let h = ( b - a ) / n as f64;
     let xk = |k: i64| a + k as f64 * h;
     for i in ( 0 .. n - 1 ) {
@@ -64,11 +64,13 @@ fn rectangle( a: f64, b: f64, n: i64 ) -> ( f64, f64, f64 ) {
     ( s_left, s_middle, s_right )
 }
 
-fn simpson( a: f64, b: f64 ) -> f64 {
+fn simpson<F>( data: ( f64, f64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    let ( a, b ) = data;
     ( ( b - a ) / 6.0 ) * ( f( a ) + 4.0 * f ( 0.5 * ( a + b ) ) + f( b ) )
 }
 
-fn simpson_kosates( a: f64, b: f64, n: i64 ) -> f64 {
+fn simpson_kosates<F>( data: ( f64, f64, i64), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    let ( a, b, n ) = data;
     let h = ( b - a ) / n as f64;
     let xk = |k: i64| a + k as f64 * h;
     let mut sum = 0.0;
@@ -79,7 +81,8 @@ fn simpson_kosates( a: f64, b: f64, n: i64 ) -> f64 {
     ( h / 3.0 ) * sum
 }
 
-fn gauss( a: f64, b: f64 ) -> f64 {
+fn gauss<F>( data: ( f64, f64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    let ( a, b ) = data;
     let bma = b - a;
     let bpa = b + a;
     let bpa2 = 0.5 * bpa;
@@ -88,9 +91,13 @@ fn gauss( a: f64, b: f64 ) -> f64 {
     0.5 * bma * ( f( bpa2 - tst2 ) + f( bpa2 + tst2 ) )
 }
 
-fn print_tuple( text: &str, tuple: (f64, f64) ) {
+fn print_tuple( text: &str, tuple: ( f64, f64 ) ) {
     let ( pi, eps ) = tuple;
     println!( "{} pi = {:.50}, eps = {:.50}", text, pi, eps );
+}
+
+fn func( x: f64 ) -> f64 {
+    1.0 / ( x * x + 1.0 )
 }
 
 fn main() {
@@ -114,14 +121,14 @@ fn main() {
     let pi = f64::consts::PI;
     let peps = |x: f64| ( x, ( x - pi ).abs() );
     let start_time = time::get_time();
-    let tr1 = 4.0 * trapezoids_v1( a, b, n );
-    let tr2 = 4.0 * trapezoids_v2( a, b, n );
-    let mc = 4.0 * monte_carlo( a, b, n );
-    let ( mut lr, mut mr, mut rr ) = rectangle( a, b, n );
+    let tr1 = 4.0 * trapezoids_v1( ( a, b, n ), func );
+    let tr2 = 4.0 * trapezoids_v2( ( a, b, n ), func );
+    let mc = 4.0 * monte_carlo( ( a, b, n ), func );
+    let ( mut lr, mut mr, mut rr ) = rectangle( ( a, b, n ), func );
     lr *= 4.0; mr *= 4.0; rr *= 4.0;
-    let sm = 4.0 * simpson( a, b );
-    let sk = 4.0 * simpson_kosates( a, b, n );
-    let gm = 4.0 * gauss( a, b );
+    let sm = 4.0 * simpson( ( a, b ), func );
+    let sk = 4.0 * simpson_kosates( ( a, b, n ), func );
+    let gm = 4.0 * gauss( ( a, b ), func );
     let end_time = time::get_time();
     println!( "[     pi constant] pi = {:.50}", pi );
     print_tuple( "[   trapezoids v1]", peps( tr1 ) );
