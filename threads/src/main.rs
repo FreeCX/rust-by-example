@@ -1,4 +1,5 @@
 extern crate rand;
+use std::f64;
 use std::thread;
 use std::sync::{Arc, Mutex};
 use rand::thread_rng;
@@ -27,6 +28,7 @@ fn main() {
     let step = iterations / thread_count;
     let result: Arc<Mutex<f64>> = Arc::new( Mutex::new( 0.0 ) );
     let mut threads = Vec::new();
+    println!( "iterations count: {}", iterations );
     for i in ( 0 .. iterations ).filter( |&x| x % step == 0 ) {
         let result = result.clone();
         threads.push( thread::spawn( move || {
@@ -44,5 +46,8 @@ fn main() {
             .expect( "Can't join to thread!" );
     }
     let result = result.lock().unwrap();
-    println!( ">> result = {:.50}", *result * 4.0 );
+    let pi = *result * 4.0;
+    println!( "> real pi = {:.50}", f64::consts::PI );
+    println!( ">> result = {:.50}", pi );
+    println!( "> epsilon = {:.50}", ( pi - f64::consts::PI).abs() );
 }
