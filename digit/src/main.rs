@@ -38,9 +38,24 @@ impl StrDigit for str {
     }
 }
 
+#[test]
+fn testing() {
+    // ( bin, dec )
+    let vector = vec![ 
+        ( "101010", "42" ), ( "1100101", "101" ), 
+        ( "1000101011100", "4444" ), ( "10000000000", "1024" ) 
+    ];
+    for ( bin, dec ) in vector {
+        let test01 = dec.dec_to_bin();
+        let test02 = test01.bin_to_dec();
+        assert_eq!( test01, bin );
+        assert_eq!( test02, dec );
+    }
+}
+
 fn main() {
-    let test01 = "11001";
-    let test02 = "42";
-    println!( "{}_2 -> {}_10", test01, test01.bin_to_dec() );
-    println!( "{}_10 -> {}_2", test02, test02.dec_to_bin() );
+    let n = "42";
+    let test01 = n.dec_to_bin();
+    let test02 = test01.bin_to_dec();
+    println!( "{}_10 -> {}_2 -> {}_10", n, test01, test02 );
 }
