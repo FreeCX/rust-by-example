@@ -5,7 +5,7 @@ fn main() {
     for arg in env::args() {
         match i {
             0 => println!( "program -- {}", arg ),
-            i => println!( "[{:05}] -- {}", i, arg ),
+            _ => println!( "[{:05}] -- {}", i, arg ),
         }
         i += 1;
     }

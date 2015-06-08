@@ -1,7 +1,11 @@
 extern crate rand;
+extern crate time;
+use std::io;
 use std::f64;
 use std::thread;
 use std::sync::{Arc, Mutex};
+use std::io::prelude::*;
+use std::str::FromStr;
 use rand::thread_rng;
 use rand::distributions::{IndependentSample, Range};
 
@@ -20,15 +24,28 @@ fn monte_carlo( a: f64, b: f64, n: i64 ) -> f64 {
     ( b - a ) * sum / n as f64 
 }
 
+fn read_line<T: FromStr>( text: &str ) -> Result<T, T::Err> {
+    let mut buffer = String::new();
+    print!( "{}", text );
+    io::stdout().flush()
+        .ok()
+        .expect( "[error] Can't flush to stdout!" );
+    io::stdin().read_line( &mut buffer )
+        .ok()
+        .expect( "[error] Can't read line!" );
+    buffer.trim().parse::<T>()
+}
+
 fn main() {
     let ( a, b ) = ( 0.0, 1.0 );
-    let iterations = 10000;
-    let thread_count = 8;
+    let iterations = read_line( "Enter iteration count: " ).unwrap_or( 10000 );
+    let thread_count = read_line( "Enter thread count: " ).unwrap_or( 8 );
     let h = ( b - a ) / thread_count as f64;
     let step = iterations / thread_count;
     let result: Arc<Mutex<f64>> = Arc::new( Mutex::new( 0.0 ) );
     let mut threads = Vec::new();
-    println!( "iterations count: {}", iterations );
+    println!( "iteration count: {}", iterations );
+    let start_time = time::get_time();
     for i in ( 0 .. iterations ).filter( |&x| x % step == 0 ) {
         let result = result.clone();
         threads.push( thread::spawn( move || {
@@ -45,9 +62,11 @@ fn main() {
             .ok()
             .expect( "Can't join to thread!" );
     }
+    let end_time = time::get_time();
     let result = result.lock().unwrap();
     let pi = *result * 4.0;
     println!( "> real pi = {:.50}", f64::consts::PI );
     println!( ">> result = {:.50}", pi );
     println!( "> epsilon = {:.50}", ( pi - f64::consts::PI).abs() );
+    println!( "> {:?}", end_time - start_time );
 }

@@ -3,8 +3,6 @@ extern crate time;
 use std::io;
 use std::f64;
 use std::io::prelude::*;
-use rand::thread_rng;
-use rand::distributions::{IndependentSample, Range};
 
 fn trapezoids_v1<F>( data: ( f64, f64, i64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
     let ( a, b, n ) = data;
@@ -30,6 +28,8 @@ fn trapezoids_v2<F>( data: ( f64, f64, i64 ), f: F ) -> f64 where F: Fn( f64 ) -
 }
 
 fn monte_carlo<F>( data: ( f64, f64, i64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
+    use rand::distributions::{IndependentSample, Range};
+    use rand::thread_rng;
     let ( a, b, n ) = data;
     let between = Range::new( a, b );
     let mut rng = rand::thread_rng();

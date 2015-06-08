@@ -28,10 +28,8 @@ fn read_file( filename: String ) -> Vec< u8 > {
     code
 }
 
-fn main() {
-    let filename = read_line( "Исполняемый файл: " );
-    let code: Vec< u8 > = read_file( filename );
-    let mem_size: usize = 256;
+fn executor( code: Vec< u8 >, mem_size: usize ) -> String {
+    let mut io_buffer = String::new();
     let mut code_index: usize = 0;
     let mut cell_index: usize = 0;
     let mut func_index: Vec< usize > = Vec::new();
@@ -42,7 +40,7 @@ fn main() {
             '-' => memory[cell_index] -= 1,
             '>' => cell_index += if cell_index < mem_size { 1 } else { 0 },
             '<' => cell_index -= if cell_index > 0 { 1 } else { 0 },
-            '.' => print!( "{}", ( memory[cell_index] as u8 ) as char ),
+            '.' => io_buffer.push( ( memory[cell_index] as u8 ) as char ),
             ',' => memory[cell_index] = io::stdin().bytes().next().unwrap().unwrap() as i64,
             '[' => func_index.push( code_index ),
             ']' => {
@@ -57,4 +55,20 @@ fn main() {
         }
         code_index += 1;
     }
+    io_buffer
+}
+
+#[test]
+fn hello() {
+    let code: Vec< u8 > = concat!( 
+        "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++",
+        ".>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.",
+        "------.--------.>+.>." ).bytes().collect();
+    assert_eq!( executor( code, 5 ), "Hello World!\n" );
+}
+
+fn main() {
+    let filename = read_line( "Исполняемый файл: " );
+    let code: Vec< u8 > = read_file( filename );
+    println!( "{}", executor( code, 256 ) );
 }
