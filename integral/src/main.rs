@@ -92,8 +92,8 @@ fn gauss<F>( data: ( f64, f64 ), f: F ) -> f64 where F: Fn( f64 ) -> f64 {
 }
 
 fn print_tuple( text: &str, tuple: ( f64, f64 ) ) {
-    let ( pi, eps ) = tuple;
-    println!( "{} pi = {:.50}, eps = {:.50}", text, pi, eps );
+    let ( pi, err ) = tuple;
+    println!( "{} pi = {:.50}, err = {:.50}", text, pi, err );
 }
 
 fn func( x: f64 ) -> f64 {
@@ -119,7 +119,7 @@ fn main() {
     };
     println!( "Iteration count = {}", n );
     let pi = f64::consts::PI;
-    let peps = |x: f64| ( x, ( x - pi ).abs() );
+    let err = |x: f64| ( x, ( x - pi ).abs() );
     let start_time = time::get_time();
     let tr1 = 4.0 * trapezoids_v1( ( a, b, n ), func );
     let tr2 = 4.0 * trapezoids_v2( ( a, b, n ), func );
@@ -131,14 +131,14 @@ fn main() {
     let gm = 4.0 * gauss( ( a, b ), func );
     let end_time = time::get_time();
     println!( "[     pi constant] pi = {:.50}", pi );
-    print_tuple( "[   trapezoids v1]", peps( tr1 ) );
-    print_tuple( "[   trapezoids v2]", peps( tr2 ) );
-    print_tuple( "[     monte-carlo]", peps( mc ) );
-    print_tuple( "[  rectangle left]", peps( lr ) );
-    print_tuple( "[rectangle middle]", peps( mr ) );
-    print_tuple( "[ rectangle right]", peps( rr ) );
-    print_tuple( "[         simpson]", peps( sm ) );
-    print_tuple( "[ simpson-kosates]", peps( sk ) );
-    print_tuple( "[           gauss]", peps( gm ) );
+    print_tuple( "[   trapezoids v1]", err( tr1 ) );
+    print_tuple( "[   trapezoids v2]", err( tr2 ) );
+    print_tuple( "[     monte-carlo]", err( mc ) );
+    print_tuple( "[  rectangle left]", err( lr ) );
+    print_tuple( "[rectangle middle]", err( mr ) );
+    print_tuple( "[ rectangle right]", err( rr ) );
+    print_tuple( "[         simpson]", err( sm ) );
+    print_tuple( "[ simpson-kosates]", err( sk ) );
+    print_tuple( "[           gauss]", err( gm ) );
     println!( "> {:?}", end_time - start_time );
 }
