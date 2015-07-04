@@ -1,16 +1,16 @@
-use std::io;
 use std::io::prelude::*;
+use std::io;
 
-fn print_stack( stack: & Vec< f64 > ) {
+fn print_stack( stack: &Vec<f64> ) {
     print!( "стек < " );
     for e in stack {
         print!( "{} ", e );
     }
-    print!( ">\n" );
+    println!( ">" );
 }
 
 fn main() {
-    let mut stack: Vec< f64 > = Vec::new();
+    let mut stack: Vec<f64> = Vec::new();
     print!( "введите выражение в ОПН: " );
     io::stdout().flush()
         .ok()
@@ -30,7 +30,7 @@ fn main() {
                     "-" => result = b - a,
                     "*" => result = b * a,
                     "/" => result = b / a,
-                    _ => continue
+                    _   => continue
                 };
                 println!( "{} {} {} -> {}", b, token, a, result );
                 stack.push( result );
@@ -45,7 +45,7 @@ fn main() {
                         println!( "{}", why );
                         continue;
                     }
-                });
+                } );
             }
         }
     }

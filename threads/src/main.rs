@@ -21,7 +21,7 @@ fn monte_carlo( a: f64, b: f64, n: i64 ) -> f64 {
         let x = between.ind_sample( &mut rng );
         sum += f( x );
     }
-    ( b - a ) * sum / n as f64 
+    ( b - a ) * sum / n as f64
 }
 
 fn read_line<T: FromStr>( text: &str ) -> Result<T, T::Err> {
@@ -67,6 +67,6 @@ fn main() {
     let pi = *result * 4.0;
     println!( "> real pi = {:.50}", f64::consts::PI );
     println!( ">> result = {:.50}", pi );
-    println!( "> epsilon = {:.50}", ( pi - f64::consts::PI).abs() );
+    println!( "> epsilon = {:.50}", ( pi - f64::consts::PI ).abs() );
     println!( "> {:?}", end_time - start_time );
 }
