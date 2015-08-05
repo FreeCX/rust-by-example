@@ -1,4 +1,4 @@
-trait StrDigit {
+pub trait StrDigit {
     fn dec_to_bin( &self ) -> String;
     fn bin_to_dec( &self ) -> String;
 }
@@ -38,18 +38,23 @@ impl StrDigit for str {
     }
 }
 
-#[test]
-fn testing() {
-    // ( bin, dec )
-    let vector = vec![ 
-        ( "101010", "42" ), ( "1100101", "101" ), 
-        ( "1000101011100", "4444" ), ( "10000000000", "1024" ) 
-    ];
-    for ( bin, dec ) in vector {
-        let test01 = dec.dec_to_bin();
-        let test02 = test01.bin_to_dec();
-        assert_eq!( test01, bin );
-        assert_eq!( test02, dec );
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn dec_bin() {
+        // ( bin, dec )
+        let vector = vec![
+            (        "101010",   "42" ), (     "1100101",  "101" ),
+            ( "1000101011100", "4444" ), ( "10000000000", "1024" )
+        ];
+        for ( bin, dec ) in vector {
+            let test01 = dec.dec_to_bin();
+            let test02 = test01.bin_to_dec();
+            assert_eq!( test01, bin );
+            assert_eq!( test02, dec );
+        }
     }
 }
 

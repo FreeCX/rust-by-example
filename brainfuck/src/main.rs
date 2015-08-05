@@ -3,6 +3,20 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
 
+#[cfg(test)]
+mod test {
+    use super::executor;
+
+    #[test]
+    fn hello_world() {
+        let code: Vec< u8 > = concat!(
+            "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++",
+            ".>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.",
+            "------.--------.>+.>." ).bytes().collect();
+        assert_eq!( executor( code, 5 ), "Hello World!\n" );
+    }
+}
+
 fn read_line( text: &str ) -> String {
     let mut buffer = String::new();
     print!( "{}", text );
@@ -56,15 +70,6 @@ fn executor( code: Vec< u8 >, mem_size: usize ) -> String {
         code_index += 1;
     }
     io_buffer
-}
-
-#[test]
-fn hello() {
-    let code: Vec< u8 > = concat!( 
-        "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++",
-        ".>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.",
-        "------.--------.>+.>." ).bytes().collect();
-    assert_eq!( executor( code, 5 ), "Hello World!\n" );
 }
 
 fn main() {

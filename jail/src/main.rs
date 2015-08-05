@@ -18,9 +18,9 @@ fn read_line<T: FromStr>( text: &str ) -> Result<T, T::Err> {
 }
 
 fn main() {
-    let max_prisoners = read_line::<usize>( "Введите количество заключенных: " ).unwrap_or( 0 );
-    let max_attempt = read_line::<usize>( "Введите количество попыток: " ).unwrap_or( 0 );
-    let max_experiment = read_line::<usize>( "Введите количество экспериментов: " ).unwrap_or( 0 );
+    let max_prisoners: usize = read_line( "Введите количество заключенных: " ).unwrap_or( 0 );
+    let max_attempt: usize = read_line( "Введите количество попыток: " ).unwrap_or( 0 );
+    let max_experiment = read_line( "Введите количество экспериментов: " ).unwrap_or( 0 );
     let mut life_counter: i16 = 0;
     let mut death_counter: i16 = 0;
     for _ in ( 0 .. max_experiment ) {
@@ -33,13 +33,18 @@ fn main() {
             // поместим номер из массива в коробку
             pbox.push( number[i] );
         }
+        // цикл по всем заключенным
         for prisoner in ( 0 .. max_prisoners ) {
             let mut next = prisoner;
+            // цикл по количеству попыток
             for _ in ( 0 .. max_attempt ) {
+                // если в коробке номер заключенного,
+                // то переходим к следующему
                 if pbox[next] == prisoner {
                     life_status = true;
                     break;
                 } else {
+                    // иначе продолжаем открывать коробки
                     next = pbox[next];
                     life_status = false;
                 }
@@ -51,7 +56,7 @@ fn main() {
         }
     }
     println!( "Количество экспериментов {}", max_experiment );
-    println!( " > Количество выживаний - {} [ {} % ]", life_counter, 
+    println!( " > Количество выживаний - {} [ {} % ]", life_counter,
               ( life_counter * 100 ) as f32 / max_experiment as f32 );
     println!( " > Количество смертей   - {} [ {} % ]", death_counter,
               ( death_counter * 100 ) as f32 / max_experiment as f32 );
