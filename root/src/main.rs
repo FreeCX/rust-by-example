@@ -1,5 +1,5 @@
-extern crate root;
-use root::functions::*;
+mod functions;
+use functions::*;
 
 fn f( x: f64 ) -> f64 {
     use std::f64::consts::PI;
