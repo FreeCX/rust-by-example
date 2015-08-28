@@ -1,0 +1,37 @@
+[package]
+name = "rust-by-example"
+version = "0.1.0"
+authors = ["Alexey Golubev <dr.freecx@gmail.com>"]
+include = ["src/*"]
+
+[dependencies]
+rand="*"
+time="*"
+
+[[bin]]
+name = "brainfuck"
+path = "src/brainfuck/main.rs"
+
+[[bin]]
+name = "digit"
+path = "src/digit/main.rs"
+
+[[bin]]
+name = "integral"
+path = "src/integral/main.rs"
+
+[[bin]]
+name = "jail"
+path = "src/jail/main.rs"
+
+[[bin]]
+name = "root"
+path = "src/root/main.rs"
+
+[[bin]]
+name = "rpn"
+path = "src/rpn/main.rs"
+
+[[bin]]
+name = "threads"
+path = "src/threads/main.rs"
