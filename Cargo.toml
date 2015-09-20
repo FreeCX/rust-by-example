@@ -35,3 +35,7 @@ path = "src/rpn/main.rs"
 [[bin]]
 name = "threads"
 path = "src/threads/main.rs"
+
+[[bin]]
+name = "in2rpn"
+path = "src/in2rpn/main.rs"
