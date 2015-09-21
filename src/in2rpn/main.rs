@@ -39,7 +39,7 @@ impl<'a> Iterator for InfixNotation<'a> {
             self.index = end_pos;
         }
         Some(unsafe {
-            self.text.slice_unchecked(start_pos, self.index)
+            self.text.slice_unchecked(start_pos, self.index).trim()
         })
     }
 }
@@ -61,13 +61,22 @@ fn can_pop(op1: &str, stack: &Vec<&str>) -> bool {
     if stack.len() == 0 {
         return false
     }
-    let p1 = get_priority(op1).unwrap();
-    let last = *stack.last().unwrap();
-    let p2 = get_priority(last).unwrap();
+    let p1 = match get_priority(op1) {
+        Some(value) => value,
+        None => panic!("[error]: unknown operator '{}'", op1)
+    };
+    let last = match stack.last() {
+        Some(value) => *value,
+        None => panic!("[error]: function stack is empty")
+    };
+    let p2 = match get_priority(last) {
+        Some(value) => value,
+        None => panic!("[error]: unknown operator '{}'", last)
+    };
     p1 >= 0 && p2 >= 0 && p1 >= p2
 }
 
-fn in2rpn(input: &str) -> String {
+pub fn in2rpn(input: &str) -> String {
     let mut result = String::new();
     let it = InfixNotation::new(input);
     let mut func: Vec<&str> = Vec::new();
@@ -77,12 +86,20 @@ fn in2rpn(input: &str) -> String {
         } else {
             if item == ")" {
                 while func.len() > 0 && *func.last().unwrap() != "(" {
-                    result.push_str(&format!("{} ", func.pop().unwrap()));
+                    let function = match func.pop() {
+                        Some(value) => value,
+                        None => panic!("[error]: function stack is empty")
+                    };
+                    result.push_str(&format!("{} ", function));
                 }
                 func.pop();
             } else {
                 while can_pop(item, &func) {
-                    result.push_str(&format!("{} ", func.pop().unwrap()));
+                    let function = match func.pop() {
+                        Some(value) => value,
+                        None => panic!("[error]: function stack is empty")
+                    };
+                    result.push_str(&format!("{} ", function));
                 }
                 func.push(item);
             }
@@ -92,6 +109,20 @@ fn in2rpn(input: &str) -> String {
         result.push_str(&format!("{} ", item));
     }
     result
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn space() {
+        assert_eq!("1 2 3 * 4 / +", in2rpn(" 1  + 2   * 3 /  4 ").trim());
+    }
+    #[test]
+    fn bracket() {
+        assert_eq!("1 2 3 4 5 - / * +", in2rpn("(1+(2*(3/(4-5))))").trim());
+    }
 }
 
 fn main() {
