@@ -73,27 +73,23 @@ fn in2rpn(input: &str) -> String {
     let mut func: Vec<&str> = Vec::new();
     for item in it {
         if is_digit(item) {
-            result.push_str(item);
-            result.push(' ');
+            result.push_str(&format!("{} ", item));
         } else {
             if item == ")" {
                 while func.len() > 0 && *func.last().unwrap() != "(" {
-                    result.push_str(func.pop().unwrap());
-                    result.push(' ');
+                    result.push_str(&format!("{} ", func.pop().unwrap()));
                 }
                 func.pop();
             } else {
                 while can_pop(item, &func) {
-                    result.push_str(func.pop().unwrap());
-                    result.push(' ');
+                    result.push_str(&format!("{} ", func.pop().unwrap()));
                 }
                 func.push(item);
             }
         }
     }
     while let Some(item) = func.pop() {
-        result.push_str(item);
-        result.push(' ');
+        result.push_str(&format!("{} ", item));
     }
     result
 }
