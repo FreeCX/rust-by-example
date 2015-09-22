@@ -39,3 +39,7 @@ path = "src/threads/main.rs"
 [[bin]]
 name = "in2rpn"
 path = "src/in2rpn/main.rs"
+
+[[bin]]
+name = "calculate"
+path = "src/calculate/main.rs"

@@ -1,5 +1,6 @@
 # rust-by-example
 * [brainfuck](src/brainfuck) -- неполный интерпретатор языка **brainfuck**
+* [calculate](src/calculate) -- использование [in2rpn](src/in2rpn) и [rpn](src/rpn) для расчёта простых выражений
 * [digit](src/digit) -- конвертор из десятиричной системы в двоичную и обратно
 * [in2rpn](src/in2rpn) -- преобразование [инфикской нотации в ОБН](https://ru.wikipedia.org/wiki/Алгоритм_сортировочной_станции)
 * [integral](src/integral) -- интегрирование функции разными методами
