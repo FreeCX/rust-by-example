@@ -3,14 +3,14 @@ extern crate time;
 use std::io;
 use std::f64;
 use std::thread;
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{self, Sender, Receiver};
 use std::io::prelude::*;
 use std::str::FromStr;
 use rand::thread_rng;
 use rand::distributions::{IndependentSample, Range};
 
 fn f(x: f64) -> f64 {
-    1.0 / (x * x + 1.0)
+    (x.powf(2.0) + 1.0).recip()
 }
 
 fn monte_carlo(a: f64, b: f64, n: i64) -> f64 {
@@ -44,29 +44,29 @@ fn main() {
     let thread_count = read_line("Enter thread count: ").unwrap_or(8);
     let h = (b - a) / thread_count as f64;
     let step = iterations / thread_count;
-    let result: Arc<Mutex<f64>> = Arc::new(Mutex::new(0.0));
     let mut threads = Vec::new();
+    let (tx, rx): (Sender<f64>, Receiver<f64>) = mpsc::channel();
     println!("iteration count: {}", iterations);
     let start_time = time::get_time();
     for i in (0..iterations).filter(|&x| x % step == 0) {
-        let result = result.clone();
+        let thread_tx = tx.clone();
         threads.push(thread::spawn(move || {
             let xk = |k: i64| a + k as f64 * h;
             let (x0, x1) = (xk(i / step), xk(i / step + 1));
             let result_thread = monte_carlo(x0, x1, step);
-            let mut result = result.lock().unwrap();
-            *result += result_thread;
+            thread_tx.send(result_thread).unwrap();
             println!("#{} result = {:.50}", i / step, result_thread);
         }));
     }
+    let mut result = 0.0;
     for thread in threads {
         thread.join()
               .ok()
               .expect("Can't join to thread!");
+        result += rx.recv().unwrap();
     }
     let end_time = time::get_time();
-    let result = result.lock().unwrap();
-    let pi = *result * 4.0;
+    let pi = result * 4.0;
     println!("> real pi = {:.50}", f64::consts::PI);
     println!(">> result = {:.50}", pi);
     println!("> epsilon = {:.50}", (pi - f64::consts::PI).abs());
