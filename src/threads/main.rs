@@ -1,74 +1,92 @@
-extern crate rand;
 extern crate time;
-use std::io;
-use std::f64;
+use std::sync::{Arc, mpsc};
 use std::thread;
-use std::sync::mpsc::{self, Sender, Receiver};
-use std::io::prelude::*;
-use std::str::FromStr;
-use rand::thread_rng;
-use rand::distributions::{IndependentSample, Range};
 
-fn f(x: f64) -> f64 {
-    (x.powf(2.0) + 1.0).recip()
+type Float = f64;
+type Integer = u32;
+type Callback = Box<Fn(Float) -> Float + Send + Sync + 'static>;
+type FnThread = Fn() -> Callback + Send + Sync;
+
+#[derive(Clone)]
+struct Integrator {
+    f: Arc<FnThread>,
+    a: Float,
+    b: Float,
+    n: Integer,
 }
 
-fn monte_carlo(a: f64, b: f64, n: i64) -> f64 {
-    let between = Range::new(a, b);
-    let mut rng = rand::thread_rng();
-    let mut sum = 0.0;
-    for _ in 0..n {
-        let x = between.ind_sample(&mut rng);
-        sum += f(x);
+impl Integrator {
+    fn new(func: Arc<FnThread>, a: Float, b: Float, iteration: Integer) -> Integrator {
+        Integrator {
+            f: func,
+            a: a,
+            b: b,
+            n: iteration,
+        }
     }
-    (b - a) * sum / n as f64
+    fn call(&self, x: Float) -> Float {
+        (self.f)()(x)
+    }
+    fn monte_carlo(&self, threads: Integer) -> Float {
+        let mut thread_list = Vec::new();
+        let h_step = (self.b - self.a) / self.n as Float;
+        let t_step = self.n / threads;
+        let (tx, rx) = mpsc::channel::<Float>();
+        for i in 0..threads {
+            let local_tx = tx.clone();
+            let local_self = self.clone();
+            thread_list.push(thread::spawn(move || {
+                let u_i = |i: Integer| -> Float { local_self.a + h_step * i as Float };
+                let (x0, x1) = (t_step * i, t_step * (i+1));
+                let sum = (x0..x1).fold(0.0, |acc, i| acc + local_self.call(u_i(i)));
+                local_tx.send(sum)
+                    .ok()
+                    .expect("Data not sended!");
+            }));
+        }
+        let mut result = 0.0;
+        for thread in thread_list {
+            thread.join()
+                  .ok()
+                  .expect("Thread can't joined!");
+            result += rx.recv()
+                        .ok()
+                        .expect("Data not recieved!");
+        }
+        result * h_step
+    }
 }
 
-fn read_line<T: FromStr>(text: &str) -> Result<T, T::Err> {
-    let mut buffer = String::new();
-    print!("{}", text);
-    io::stdout()
-        .flush()
-        .ok()
-        .expect("[error] Can't flush to stdout!");
-    io::stdin()
-        .read_line(&mut buffer)
-        .ok()
-        .expect("[error] Can't read line!");
-    buffer.trim().parse::<T>()
+fn monte_carlo_linear(f: Arc<FnThread>, a: Float, b: Float, n: Integer) -> Float {
+    let h = (b - a) / n as Float;
+    let u_i = |i: Integer| -> Float { a + h * i as Float };
+    (0..n).fold(0.0, |acc, x| acc + (f())(u_i(x))) * h
+}
+
+fn f() -> Callback {
+    Box::new(|x: Float| -> Float {
+        (x.powf(2.0) + 1.0).recip()
+    })
 }
 
 fn main() {
-    let (a, b) = (0.0, 1.0);
-    let iterations = read_line("Enter iteration count: ").unwrap_or(10000);
-    let thread_count = read_line("Enter thread count: ").unwrap_or(8);
-    let h = (b - a) / thread_count as f64;
-    let step = iterations / thread_count;
-    let mut threads = Vec::new();
-    let (tx, rx): (Sender<f64>, Receiver<f64>) = mpsc::channel();
-    println!("iteration count: {}", iterations);
-    let start_time = time::get_time();
-    for i in (0..iterations).filter(|&x| x % step == 0) {
-        let thread_tx = tx.clone();
-        threads.push(thread::spawn(move || {
-            let xk = |k: i64| a + k as f64 * h;
-            let (x0, x1) = (xk(i / step), xk(i / step + 1));
-            let result_thread = monte_carlo(x0, x1, step);
-            thread_tx.send(result_thread).unwrap();
-            println!("#{} result = {:.50}", i / step, result_thread);
-        }));
+    let (a, b, n) = (0.0, 1.0, 1_000_000_000);
+    let f_a = Integrator::new(Arc::new(f), a, b, n);
+    println!("# Iteration count: {:E}", n as Float);
+    let start = time::get_time();
+    let pi = monte_carlo_linear(Arc::new(f), a, b, n) * 4.0;
+    let duration = time::get_time() - start;
+    println!("# Linear code");
+    println!("result = {:+.16}", pi);
+    println!("   err = {:+.16}", std::f64::consts::PI - pi);
+    println!("  time = {} ms\n", duration.num_milliseconds());
+    for threads in (1..9).filter(|&x| x % 2 == 0) {
+        println!("# Thread count: {}", threads);
+        let start = time::get_time();
+        let pi = f_a.monte_carlo(threads) * 4.0;
+        let duration = time::get_time() - start;
+        println!("result = {:+.16}", pi);
+        println!("   err = {:+.16}", std::f64::consts::PI - pi);
+        println!("  time = {} ms\n", duration.num_milliseconds());
     }
-    let mut result = 0.0;
-    for thread in threads {
-        thread.join()
-              .ok()
-              .expect("Can't join to thread!");
-        result += rx.recv().unwrap();
-    }
-    let end_time = time::get_time();
-    let pi = result * 4.0;
-    println!("> real pi = {:.50}", f64::consts::PI);
-    println!(">> result = {:.50}", pi);
-    println!("> epsilon = {:.50}", (pi - f64::consts::PI).abs());
-    println!("> {:?}", end_time - start_time);
 }
