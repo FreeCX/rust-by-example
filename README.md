@@ -1,4 +1,8 @@
 # rust-by-example
+
+## Usage
+Use this `cargo run --bin <app-name>` to run.
+
 ## RUS
 * [brainfuck](src/brainfuck) -- неполный интерпретатор языка **brainfuck**
 * [calculate](src/calculate) -- использование [in2rpn](src/in2rpn) и [rpn](src/rpn) для расчёта простых выражений
