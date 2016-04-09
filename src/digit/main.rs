@@ -18,11 +18,10 @@ impl StrDigit for str {
             });
             number /= 2;
         }
-        unsafe {
-            let vec = result.as_mut_vec();
-            vec.reverse()
-        }
-        result
+        // reverse string
+        result.chars()
+              .rev()
+              .collect()
     }
     fn bin_to_dec(&self) -> String {
         let mut result: usize = 0;

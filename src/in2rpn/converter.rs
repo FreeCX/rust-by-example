@@ -16,12 +16,15 @@ impl<'a> Iterator for InfixNotation<'a> {
     type Item = &'a str;
     fn next(&mut self) -> Option<&'a str> {
         let start_pos = self.index;
+        // end of iter()
         if start_pos >= self.text.len() {
             return None;
         }
         let mut end_pos = self.index;
+        // skip first `start_pos` characters
         for block in self.text.chars().skip(start_pos) {
             end_pos += 1;
+            // find `end_pos` in self.text index
             match block {
                 '+' | '-' | '*' | '/' | '(' | ')' => {
                     end_pos -= 1;
@@ -30,19 +33,23 @@ impl<'a> Iterator for InfixNotation<'a> {
                 _ => continue,
             }
         }
+        // check by zero length string
         if end_pos - start_pos == 0 {
             self.index = end_pos + 1;
         } else {
             self.index = end_pos;
         }
-        Some(unsafe { self.text.slice_unchecked(start_pos, self.index).trim() })
+        // and return subtext of `self.text`
+        Some(&self.text[start_pos..self.index].trim())
     }
 }
 
 fn is_digit(block: &str) -> bool {
+    // check first character by digit
     block.chars().nth(0).unwrap().is_digit(10)
 }
 
+// operator priority
 fn get_priority(operator: &str) -> Option<i8> {
     match operator {
         "(" => Some(-1),
@@ -52,6 +59,7 @@ fn get_priority(operator: &str) -> Option<i8> {
     }
 }
 
+// check the possibility to pull out of the stack
 fn can_pop(op1: &str, stack: &Vec<&str>) -> bool {
     if stack.len() == 0 {
         return false;
@@ -72,14 +80,19 @@ fn can_pop(op1: &str, stack: &Vec<&str>) -> bool {
 }
 
 pub fn in2rpn(input: &str) -> String {
+    // result string in RPN notation
     let mut result = String::new();
     let it = InfixNotation::new(input);
+    // operator stack
     let mut func: Vec<&str> = Vec::new();
     for item in it {
         if is_digit(item) {
+            // push digit to result string
             result.push_str(&format!("{} ", item));
         } else {
+            // Shunting-yard main part
             if item == ")" {
+                // main priority -- data in ( ... )
                 while func.len() > 0 && *func.last().unwrap() != "(" {
                     let function = match func.pop() {
                         Some(value) => value,
@@ -89,6 +102,7 @@ pub fn in2rpn(input: &str) -> String {
                 }
                 func.pop();
             } else {
+                // until we can take out of the stack our function (operators)
                 while can_pop(item, &func) {
                     let function = match func.pop() {
                         Some(value) => value,
@@ -100,6 +114,7 @@ pub fn in2rpn(input: &str) -> String {
             }
         }
     }
+    // take out all the remaining
     while let Some(item) = func.pop() {
         result.push_str(&format!("{} ", item));
     }

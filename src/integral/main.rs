@@ -111,15 +111,13 @@ fn func(x: f64) -> f64 {
 fn main() {
     let (a, b) = (0.0, 1.0);
     let mut buffer = String::new();
-    print!("Enter iterations: ");
+    print!("Enter iteration count: ");
     io::stdout()
         .flush()
-        .ok()
-        .expect("Can't flush!");
+        .expect("Couldn't flush to stdout!");
     io::stdin()
         .read_line(&mut buffer)
-        .ok()
-        .expect("Can't read line!");
+        .expect("Couldn't read line!");
     let n = match buffer.trim().parse() {
         Ok(value) => value,
         Err(error) => {

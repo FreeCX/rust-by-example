@@ -1,4 +1,4 @@
-// по мотивам поста http://habrahabr.ru/post/250817/
+// inspired by http://habrahabr.ru/post/250817/
 extern crate rand;
 use std::io;
 use std::io::prelude::*;
@@ -10,46 +10,41 @@ fn read_line<T: FromStr>(text: &str) -> Result<T, T::Err> {
     print!("{}", text);
     io::stdout()
         .flush()
-        .ok()
-        .expect("Не удалось очистить stdout!");
+        .expect("Couldn't flush to stdout!");
     io::stdin()
         .read_line(&mut buffer)
-        .ok()
-        .expect("Невозможно прочитать строку!");
+        .expect("Couldn't read line!");
     buffer.trim().parse::<T>()
 }
 
 fn main() {
-    let max_prisoners: usize =
-        read_line("Введите количество заключенных: ").unwrap_or(0);
-    let max_attempt: usize = read_line("Введите количество попыток: ")
-                                 .unwrap_or(0);
-    let max_experiment =
-        read_line("Введите количество экспериментов: ").unwrap_or(0);
+    let max_prisoners: usize = read_line("Input prisoners count: ").unwrap_or(0);
+    let max_attempt: usize = read_line("Input number of attempts: ").unwrap_or(0);
+    let max_experiment = read_line("Input experiments count: ").unwrap_or(0);
     let mut life_counter: i16 = 0;
     let mut death_counter: i16 = 0;
     for _ in 0..max_experiment {
         let mut number: Vec<usize> = (0..max_prisoners).collect();
         let mut pbox: Vec<usize> = Vec::new();
         let mut life_status: bool = false;
-        // перемешиваем номера
+        // shuffle numbers array
         thread_rng().shuffle(&mut *number);
         for i in 0..max_prisoners {
-            // поместим номер из массива в коробку
+            // put number from array to box
             pbox.push(number[i]);
         }
-        // цикл по всем заключенным
+        // loop by prisoners
         for prisoner in 0..max_prisoners {
             let mut next = prisoner;
-            // цикл по количеству попыток
+            // loop by attempts
             for _ in 0..max_attempt {
-                // если в коробке номер заключенного,
-                // то переходим к следующему
+                // if prisoner number in the box,
+                // then go to the next
                 if pbox[next] == prisoner {
                     life_status = true;
                     break;
                 } else {
-                    // иначе продолжаем открывать коробки
+                    // otherwise we continue to open the box
                     next = pbox[next];
                     life_status = false;
                 }
@@ -60,12 +55,9 @@ fn main() {
             false => death_counter += 1,
         }
     }
-    println!("Количество экспериментов {}",
-             max_experiment);
-    println!(" > Количество выживаний - {} [ {} % ]",
-             life_counter,
-             (life_counter * 100) as f32 / max_experiment as f32);
-    println!(" > Количество смертей   - {} [ {} % ]",
-             death_counter,
-             (death_counter * 100) as f32 / max_experiment as f32);
+    println!("Experiments count {}", max_experiment);
+    println!(" > Number of survival - {} [ {} % ]",
+             life_counter, (life_counter * 100) as f32 / max_experiment as f32);
+    println!(" > Number of deaths   - {} [ {} % ]",
+             death_counter, (death_counter * 100) as f32 / max_experiment as f32);
 }

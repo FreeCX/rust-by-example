@@ -27,6 +27,8 @@ impl Integrator {
     fn call(&self, x: Float) -> Float {
         (self.f)()(x)
     }
+    // parallel Monte-Carlo method
+    // share the desired reporting interval and are distributing to threads
     fn monte_carlo(&self, threads: Integer) -> Float {
         let mut thread_list = Vec::new();
         let h_step = (self.b - self.a) / self.n as Float;
@@ -38,31 +40,28 @@ impl Integrator {
             thread_list.push(thread::spawn(move || {
                 let u_i = |i: Integer| -> Float { local_self.a + h_step * i as Float };
                 let (x0, x1) = (t_step * i, t_step * (i+1));
+                // main part of method
                 let sum = (x0..x1).fold(0.0, |acc, i| acc + local_self.call(u_i(i)));
-                local_tx.send(sum)
-                    .ok()
-                    .expect("Data not sended!");
+                local_tx.send(sum).expect("Data not sended!");
             }));
         }
         let mut result = 0.0;
         for thread in thread_list {
-            thread.join()
-                  .ok()
-                  .expect("Thread can't joined!");
-            result += rx.recv()
-                        .ok()
-                        .expect("Data not recieved!");
+            thread.join().expect("Thread can't joined!");
+            result += rx.recv().expect("Data not recieved!");
         }
         result * h_step
     }
 }
 
+// linear Monte-Carlo method
 fn monte_carlo_linear(f: Arc<FnThread>, a: Float, b: Float, n: Integer) -> Float {
     let h = (b - a) / n as Float;
     let u_i = |i: Integer| -> Float { a + h * i as Float };
     (0..n).fold(0.0, |acc, x| acc + (f())(u_i(x))) * h
 }
 
+// calculated function
 fn f() -> Callback {
     Box::new(|x: Float| -> Float {
         (x.powf(2.0) + 1.0).recip()
@@ -70,7 +69,9 @@ fn f() -> Callback {
 }
 
 fn main() {
-    let (a, b, n) = (0.0, 1.0, 1_000_000_000);
+    // [a, b] -- interval
+    //      n -- iteration count
+    let (a, b, n) = (0.0, 1.0, 10_000_000);
     let f_a = Integrator::new(Arc::new(f), a, b, n);
     println!("# Iteration count: {:E}", n as Float);
     let start = time::get_time();
