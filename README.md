@@ -1,7 +1,9 @@
 # rust-by-example
 
+See more examples in [programming-challenges](https://github.com/FreeCX/programming-challenges) repo.
+
 ## Usage
-Use this `cargo run --bin <app-name>` to run.
+Use `cargo run --bin <app-name>` to run.
 
 ## RUS
 * [brainfuck](src/brainfuck) -- неполный интерпретатор языка **brainfuck**
